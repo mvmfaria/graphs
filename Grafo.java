@@ -4,6 +4,8 @@
  */
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 public class Grafo<T> {
     private ArrayList<Aresta> arestas;
@@ -168,6 +170,23 @@ public class Grafo<T> {
         return menorIndice;
     }
 
+    public Integer encontrarArestaDeMenorElemento(ArrayList<Aresta> lista) {
+            
+        int menorIndice = 0;
+        Aresta menorElemento = lista.get(0);
+
+        for (int i = 1; i < lista.size(); i++) {
+            Aresta elementoAtual = lista.get(i);
+
+            if (elementoAtual.compareTo(menorElemento) < 0) {
+                menorIndice = i;
+                menorElemento = elementoAtual;
+            }
+        }
+
+        return menorIndice;
+    }
+
     /*
      * A árvore geradora mínima foi construída utilizando o algoritmo de Prim. A abordagem consiste em inicializar todos os 
      * vértices do grafo com dois valores: o vértice predecessor e o peso da aresta para chegar até esse vértice a partir do 
@@ -180,7 +199,7 @@ public class Grafo<T> {
      * vértice de menor peso é selecionado do grafo. Dessa forma, a árvore geradora mínima é construída passo a passo, 
      * adicionando os vértices com os menores pesos até que todos os vértices estejam incluídos na árvore.
      */
-    public Grafo<T> construirArvoreGeradoraMinima(Grafo<T> grafo) {
+    public Grafo<T> construirArvoreGeradoraMinima() {
 
         /*
          * A estruturas que foram utilizadas estão sendo instanciadas a seguir. O ponto de atenção aqui é apenas nos arrays
@@ -188,7 +207,7 @@ public class Grafo<T> {
          * algoritmo de Prim. O "auxInformacoes" foi necessário para que fosse possivel "inutilizar um vértice" assim que todos 
          * seu destinos tivessem sido verificados.
          */
-        ArrayList<Vertice<T>> vertices = new ArrayList<>(grafo.getVertices());
+
         ArrayList<VerticePeso<T>> informacoes = new ArrayList<VerticePeso<T>>();
         ArrayList<VerticePeso<T>> auxInformacoes = new ArrayList<VerticePeso<T>>();
         ArrayList<Vertice<T>> verificados = new ArrayList<Vertice<T>>();
@@ -198,7 +217,7 @@ public class Grafo<T> {
          * Preenchendo ambos arrays que guardam as informações dos vértices. Eu crio dois vértices a cada iteração, pois, dessa forma 
          * eu evito que alteração do objeto em uma lista não afete a outra. Ao final eu inicializo os vértices iniciais.
          */
-        for (int i = 0; i < grafo.getVertices().size(); i++) {
+        for (int i = 0; i < this.vertices.size(); i++) {
             informacoes.add(new VerticePeso<>());
             auxInformacoes.add(new VerticePeso<>());
         }
@@ -218,11 +237,11 @@ public class Grafo<T> {
             int indice = encontrarIndiceMenorElemento(auxInformacoes);
             auxInformacoes.get(indice).setPeso(Float.MAX_VALUE);
 
-            Vertice<T> atual = vertices.get(indice);
-            for (Aresta vizinho : grafo.obterDestinos(atual)) {
+            Vertice<T> atual = this.vertices.get(indice);
+            for (Aresta vizinho : this.obterDestinos(atual)) {
                 if (!verificados.contains(vizinho.getDestino())) {
-                    for (int i = 0; i < vertices.size(); i++) {
-                        if (vertices.get(i).equals(vizinho.getDestino())) {
+                    for (int i = 0; i < this.vertices.size(); i++) {
+                        if (this.vertices.get(i).equals(vizinho.getDestino())) {
                             if (vizinho.getPeso() < informacoes.get(i).getPeso()) {
                                 informacoes.get(i).setPeso(vizinho.getPeso());
                                 auxInformacoes.get(i).setPeso(vizinho.getPeso());
@@ -232,17 +251,125 @@ public class Grafo<T> {
                     }
                 }
             }
-            verificados.add(vertices.get(indice));  
+            verificados.add(this.vertices.get(indice));  
         }
 
+        
         /*
          * Agora que temos as informações sobre os vértices, basta criarmos a árvore. Nesse ponto, como eu quero criar uma árvore
          * geradora mínima, eu preciso duplicar as arestas, invertendo origem e destino, porém, mantendo o peso.
          */
-        for (int i = 1; i < informacoes.size(); i++) {
-            novoGrafo.adicionaAresta(informacoes.get(i).getVerticePai().getValor(), vertices.get(i).getValor(), informacoes.get(i).getPeso());
-            novoGrafo.adicionaAresta(vertices.get(i).getValor(), informacoes.get(i).getVerticePai().getValor(), informacoes.get(i).getPeso());
+        for (int v = 0; v < this.vertices.size(); v++) {
+            novoGrafo.adicionaVertice(this.vertices.get(v).getValor());
         }
+
+        for (int i = 1; i < informacoes.size(); i++) {
+            novoGrafo.adicionaAresta(informacoes.get(i).getVerticePai().getValor(), this.vertices.get(i).getValor(), informacoes.get(i).getPeso());
+            novoGrafo.adicionaAresta(this.vertices.get(i).getValor(), informacoes.get(i).getVerticePai().getValor(), informacoes.get(i).getPeso());
+        }
+
         return novoGrafo;
+    }
+
+    /*
+     * Desenvolvendo algortimo de menor distancia entre dois pontos.
+     */
+
+    public void menorCaminhoEntreDoisPontos(int indiceInicial, int indiceFinal) {
+
+        /*
+         * Estruturas utilizadas para armazenar as informações. 
+         */
+        ArrayList<VerticePeso<T>> informacoes = new ArrayList<VerticePeso<T>>();
+        ArrayList<VerticePeso<T>> auxInformacoes = new ArrayList<VerticePeso<T>>();
+        ArrayList<Vertice<T>> verificados = new ArrayList<Vertice<T>>();
+
+        /*
+         * Atualizando os vértices com os valores iniciais.
+         */
+        for (int i = 0; i < this.vertices.size(); i++) {
+            informacoes.add(new VerticePeso<>());
+            auxInformacoes.add(new VerticePeso<>());
+        }
+
+        informacoes.get(indiceInicial - 1).setPeso(0.0f);
+        auxInformacoes.get(indiceInicial - 1).setPeso(0.0f);
+
+        /*
+         * Temos que executar até que todos os vértices sejam verificados.
+         */
+        while (verificados.size() < informacoes.size()) {
+
+            /*
+             * Armazenamos o indice do vértice de menor valor.
+             */
+            int indice = encontrarIndiceMenorElemento(auxInformacoes);
+            
+            /*
+             * Inutilizo o vértice atribuindo um valor máximo para ele.
+             */
+            auxInformacoes.get(indice).setPeso(Float.MAX_VALUE);
+            
+            /*
+             * O primeiro passo é fazer o "relaxamento" das arestas e em seguida verificar menor caminho.
+             */
+            Vertice<T> atual = this.vertices.get(indice);
+            for (Aresta vizinho : this.obterDestinos(atual)) {
+                if (!verificados.contains(vizinho.getDestino())) {
+                    
+                    /*
+                     * Identifico o respectivo vértice na lista de informações.
+                     */
+                    for (int i = 0; i < this.vertices.size(); i++) {
+                        if (this.vertices.get(i).equals(vizinho.getDestino())) {
+                            
+                            /*
+                             * Agora verifico o peso do vértice do vizinho e verifico se é vantajosa atualizar.
+                             */
+                            if ((vizinho.getPeso() + informacoes.get(indice).getPeso())  < informacoes.get(i).getPeso()) {
+                                informacoes.get(i).setVerticePai(atual);
+                                informacoes.get(i).setPeso(vizinho.getPeso() + informacoes.get(indice).getPeso());
+                                auxInformacoes.get(i).setPeso(vizinho.getPeso() + informacoes.get(indice).getPeso());
+                            }
+                        }
+                    }
+                }
+            }
+            verificados.add(this.vertices.get(indice));
+        }
+
+        /*
+         * Retornando informações de cada vértice.
+         */
+        VerticePeso<T> infoVerticeAtual = informacoes.get(indiceFinal - 1);
+        int indiceVerticeAtual = indiceFinal - 1;
+        boolean rodando = true;
+        while (rodando)
+        for (int i = 0; i < vertices.size(); i++) {
+            if (infoVerticeAtual.getVerticePai().equals(vertices.get(i))) {
+                /*
+                 * O vértice atual é o destino final na primeira execução.
+                 */
+                System.out.println(vertices.get(indiceVerticeAtual) + "\u001B[34m --> \u001B[0m" + vertices.get(i));
+                
+                /*
+                 * O vértice pai é o destino do vértice atual.
+                 */
+                indiceVerticeAtual = i;
+                infoVerticeAtual = informacoes.get(indiceVerticeAtual);
+
+                /*
+                 * Verifico se o predecessor é nulo. 
+                 */
+                if (infoVerticeAtual.getVerticePai() == null) {
+                    rodando = false;
+                    break;
+                }
+            }
+        }
+        /*
+         * Imprimindo o peso.
+         */
+        System.out.println("\u001B[34mDistancia entre as cidades: \u001B[0m" + informacoes.get(indiceFinal - 1).getPeso());
     }
 }

@@ -41,6 +41,4 @@ public class Aresta implements Comparable<Aresta> {
     public String toString() {
         return "\u001B[34morigem: \u001B[0m" + getOrigem() + "\u001B[34m, destino: \u001B[0m" + getDestino() + "\u001B[34m, peso: \u001B[0m" + getPeso();
     }
-
-
 }

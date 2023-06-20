@@ -7,6 +7,7 @@ public class App {
     public static void main(String[] args) {
 
         Grafo<Cidade> grafo = new Grafo<>();
+        Grafo<Cidade> AGM = new Grafo<>();
 
         String nomeArquivo = "entrada.txt";
 
@@ -63,7 +64,9 @@ public class App {
             System.out.println("\n1. Obter cidades vizinhas.");
             System.out.println("2. Caminhos possiveis.");
             System.out.println("3. Calcular arvore geradora minima.");
-            System.out.println("4. Sair.");
+            System.out.println("4. Distancia entre duas cidades (Grafo normal).");
+            System.out.println("5. Distancia entre duas cidades (AGM).");
+            System.out.println("6. Sair.");
             
             System.out.print("\n\u001B[32mO que voce deseja fazer: \u001B[0m");
             opcao = scanner.nextInt();
@@ -104,7 +107,8 @@ public class App {
                  * A seguir chamamos o método para retornar a arvore geradora minima do grafo. (a explicação está no método).
                  */
                 case 3:
-                    Grafo<Cidade> novo = grafo.construirArvoreGeradoraMinima(grafo);
+                    
+                    AGM = grafo.construirArvoreGeradoraMinima();
 
                     /*
                      * Tendo a arvore geradora minima retornada pelo método, bastou percorrer a lista de arestas e exibir
@@ -113,14 +117,87 @@ public class App {
                      */
                     System.out.println("\nArestas da arvore geradora minima: \n");
                     float peso = 0.0f;
-                    for (int i = 0; i < novo.getArestas().size(); i+=2) {
-                        System.out.println(novo.getArestas().get(i));
-                        peso += novo.getArestas().get(i).getPeso();
+                    for (int i = 0; i < AGM.getArestas().size(); i+=2) {
+                        System.out.println(AGM.getArestas().get(i));
+                        peso += AGM.getArestas().get(i).getPeso();
                     }
                     System.out.println("\nSoma total dos pesos das arestas: \u001B[31m" + peso + "\u001B[0m");
                     break;
 
                 case 4:
+                    
+                    /*
+                     * Recebendo os códigos das cidades de inicio e fim.
+                     */
+                    System.out.print("\nCodigo da cidade inicial: ");
+                    int cidadeInicial = scanner.nextInt();
+
+                    System.out.print("\nCodigo da cidade final: ");
+                    int cidadeFinal = scanner.nextInt();
+
+                    int existe = 0;
+
+                    /*
+                     * Faz uma verficação simples saber se as cidades informadas exitem.
+                     */
+                    for (Vertice<Cidade> vertice : grafo.getVertices()) {
+                        if (vertice.getValor().getCodigo() == cidadeInicial || vertice.getValor().getCodigo() == cidadeFinal) {
+                            existe++;
+                        }
+                    }
+                    
+                    if (existe < 2) {
+                        System.out.println("\n\u001B[31mAlguma cidade não foi encontrada.\u001B[0m");
+                    } else {
+
+                        /*
+                         * Chamo o método de caminho mínimo entre pontos.
+                         */
+                        grafo.menorCaminhoEntreDoisPontos(cidadeInicial, cidadeFinal);
+                    }
+                    break;
+
+                case 5:
+                    
+                    /*
+                     * Recebendo os códigos das cidades de inicio e fim.
+                     */
+                    System.out.print("\nCodigo da cidade inicial: ");
+                    int cidadeInicialAGM = scanner.nextInt();
+
+                    System.out.print("\nCodigo da cidade final: ");
+                    int cidadeFinalAGM = scanner.nextInt();
+
+                    int existeAGM = 0;
+
+                    /*
+                     * Faz uma verficação simples saber se as cidades informadas exitem.
+                     */
+                    for (Vertice<Cidade> vertice : grafo.getVertices()) {
+                        if (vertice.getValor().getCodigo() == cidadeInicialAGM || vertice.getValor().getCodigo() == cidadeFinalAGM) {
+                            existeAGM++;
+                        }
+                    }
+
+                    if (existeAGM < 2) {
+                        System.out.println("\n\u001B[31mAlguma cidade não foi encontrada.\u001B[0m");
+                    } else {
+                        
+                        /*
+                         * Preciso verificar antes se a AGM já foi criada.
+                         */
+                        if (AGM.getVertices().size() == 0) {
+                            AGM = grafo.construirArvoreGeradoraMinima();
+                        }
+                        
+                        /*
+                         * Chamo o método de caminho mínimo entre pontos.
+                         */
+                        AGM.menorCaminhoEntreDoisPontos(cidadeInicialAGM, cidadeFinalAGM);
+                    }
+                    break;
+                
+                case 6:
                     rodando = false;
                     break;
 
